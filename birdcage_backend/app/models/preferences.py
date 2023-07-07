@@ -1,10 +1,7 @@
 from app.utils.db import BaseModel
 from peewee import IntegerField, TextField, DateTimeField
 import datetime
-
-import sqlite3
 import bcrypt
-from config import DATABASE_FILE
 
 
 class UserPreferences(BaseModel):
