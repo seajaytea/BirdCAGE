@@ -1,33 +1,13 @@
 from flask import Blueprint, request, jsonify
-import sqlite3
-from config import DATABASE_FILE
+from app.models.streams import Stream
 from app.decorators import admin_required
 
 streams_blueprint = Blueprint('streams', __name__)
 
 
 def get_streams_list():
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    cursor.execute('SELECT * FROM streams')
-    streams = cursor.fetchall()
-
-    # Convert the fetched data into a list of dictionaries
-    streams_dict = [
-        {
-            "id": stream[0],
-            "name": stream[1],
-            "address": stream[2],
-            "protocol": stream[3],
-            "transport": stream[4],
-        }
-        for stream in streams
-    ]
-
-    connection.close()
-
-    return streams_dict
+    streams = Stream.select().dicts()
+    return list(streams.execute())
 
 
 @streams_blueprint.route('/api/streams', methods=['GET'])
@@ -41,16 +21,14 @@ def get_streams():
 def create_stream():
     data = request.get_json()
 
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
+    stream = Stream.create(
+        name=data['name'],
+        address=data['address'],
+        protocol=data['protocol'],
+        transport=data.get('transport')
+    )
 
-    cursor.execute('INSERT INTO streams (name, address, protocol, transport) VALUES (?, ?, ?, ?)',
-                   (data['name'], data['address'], data['protocol'], data.get('transport')))
-
-    connection.commit()
-    connection.close()
-
-    return jsonify({"message": "Stream created successfully."})
+    return jsonify({"message": "Stream created successfully. ID: {}".format(stream.id)})
 
 
 @streams_blueprint.route('/api/streams/<int:stream_id>', methods=['PUT'])
@@ -58,16 +36,12 @@ def create_stream():
 def update_stream(stream_id):
     data = request.get_json()
 
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    cursor.execute('''UPDATE streams  
-                      SET name = ?, address = ?, protocol = ?, transport = ?  
-                      WHERE id = ?''',
-                   (data['name'], data['address'], data['protocol'], data.get('transport'), stream_id))
-
-    connection.commit()
-    connection.close()
+    stream = Stream.get_by_id(stream_id)
+    stream.name = data['name']
+    stream.address = data['address']
+    stream.protocol = data['protocol']
+    stream.transport = data.get('transport')
+    stream.save()
 
     return jsonify({"message": "Stream updated successfully."})
 
@@ -75,12 +49,8 @@ def update_stream(stream_id):
 @streams_blueprint.route('/api/streams/<int:stream_id>', methods=['DELETE'])
 @admin_required
 def delete_stream(stream_id):
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
 
-    cursor.execute('DELETE FROM streams WHERE id = ?', (stream_id,))
-
-    connection.commit()
-    connection.close()
+    stream = Stream.get_by_id(stream_id)
+    stream.delete_instance()
 
     return jsonify({"message": "Stream deleted successfully."})
