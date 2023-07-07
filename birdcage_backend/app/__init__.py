@@ -20,6 +20,7 @@ from app.models.detections import create_detections_table
 from app.models.filters import create_filters_tables
 from app.models.notifications import create_notification_services_table, create_notification_assignments_table
 from app.models.commands import create_commands_table
+from app.utils.db import db
 from config import CORS_ORIGINS, JWT_SECRET_KEY
 
 
@@ -37,6 +38,16 @@ def create_app(init_celery=True):
     create_notification_services_table()
     create_notification_assignments_table()
     create_commands_table()
+
+    @app.before_request
+    def before_request():
+        if db.is_closed():
+            db.connect()
+    
+    @app.teardown_request
+    def teardown_request(exception):
+        if not db.is_closed():
+            db.close()
 
     if init_celery:
         # Initialize Celery

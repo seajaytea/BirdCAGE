@@ -1,5 +1,9 @@
-import sqlite3
+from peewee import SqliteDatabase, Model
+from config import DATABASE_FILE
+
+db = SqliteDatabase(DATABASE_FILE)
 
 
-def get_db_connection():
-    return sqlite3.connect('birdcage.db')
+class BaseModel(Model):
+    class Meta:
+        database = db
