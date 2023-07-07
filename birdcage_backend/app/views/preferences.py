@@ -36,8 +36,10 @@ def login():
 
 @preferences_blueprint.route('/api/preferences/<int:user_id>', methods=['GET'])
 def get_preferences(user_id):
-    preferences = UserPreferences.select().where(UserPreferences.user_id == user_id).dicts()
-    return jsonify(preferences.execute())
+    preferences = UserPreferences.select().where(UserPreferences.user_id == user_id)
+    if not preferences:
+        return jsonify({'error': 'Preferences not found'}), 404
+    return {preference.preference_key: preference.preference_value for preference in preferences}
 
 
 def validate_password(password):
@@ -123,7 +125,9 @@ def set_preference():
     if preference_key == 'password':
         preference_value = bcrypt.hashpw(preference_value.encode(), bcrypt.gensalt()).decode()
 
-    UserPreferences.update_or_create(user_id=user_id, preference_key=preference_key, preference_value=preference_value)
+    pref, created = UserPreferences.get_or_create(user_id=user_id, preference_key=preference_key, defaults={'preference_value': preference_value})
+
+    
 
     if preference_key == 'password':
         return jsonify({"message": "Password set successfully."})
