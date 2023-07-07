@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import ffmpeg
 import uuid
-from app.models.preferences import get_all_user_preferences
+from app.models.preferences import UserPreferences
 from app.models.detections import add_detection
 from app.models.commands import check_command_value, reset_command
 from config import TEMP_DIR_NAME, DETECTION_DIR_NAME, REDIS_SERVER, REDIS_PORT
@@ -315,7 +315,7 @@ def analyze_recordings(self):
     if not os.path.exists(DETECTION_DIR):
         os.makedirs(DETECTION_DIR)
 
-    preferences = get_all_user_preferences(0)
+    preferences = UserPreferences.get_all_user_preferences(0)
     last_cleanup_time = datetime.now()
     last_keepalive_time = datetime.now()
 
@@ -551,7 +551,7 @@ def monitor_tasks(self, task_ids):
 def start_tasks():
     print('Starting recording and analyze tasks', flush=True)
     streams = get_streams_list()
-    preferences = get_all_user_preferences(0)
+    preferences = UserPreferences.get_all_user_preferences(0)
 
     tasks = [record_stream.s(stream, preferences) for stream in streams]
     tasks.append(analyze_recordings.s())

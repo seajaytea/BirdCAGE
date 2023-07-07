@@ -1,89 +1,75 @@
+from app.utils.db import BaseModel
+from peewee import IntegerField, TextField, DateTimeField
+import datetime
+
 import sqlite3
 import bcrypt
 from config import DATABASE_FILE
 
 
-def create_preferences_table():
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
+class UserPreferences(BaseModel):
+    id = IntegerField(primary_key=True)
+    user_id = IntegerField()
+    preference_key = TextField()
+    preference_value = TextField()
+    last_updated = DateTimeField(default=datetime.datetime.now)
 
-    cursor.execute('''CREATE TABLE  IF NOT EXISTS user_preferences (    
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,    
-                        user_id INTEGER NOT NULL,    
-                        preference_key TEXT NOT NULL,    
-                        preference_value TEXT NOT NULL,    
-                        last_updated TIMESTAMP NOT NULL,
-                        UNIQUE (user_id, preference_key) 
-                        )''')
+    class Meta:
+        indexs = (
+            (('user_id', 'preference_key'), True),
+        )
+        table_name = 'user_preferences'
 
-    password = 'birdcage'
-    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    @classmethod
+    def get_all_user_preferences(cls, user_id):
+        rtn = {}
+        preferences = cls.select().where(cls.user_id == user_id)
+        
+        for preference in preferences:
+            rtn[preference.preference_key] = preference.preference_value
+        return rtn
 
-    default_preferences = [
-        ('recordinglength', '15'),
-        ('confidence', '0.7'),
-        ('extractionlength', '6'),
-        ('latitude', '39.0473'),
-        ('longitude', '-95.6752'),
-        ('overlap', '0'),
-        ('sensitivity', '1'),
-        ('sf_thresh', '0.03'),
-        ('password', hashed_password),
-        ('locale', 'en'),
-        ('recordingretention', '0'),
-        ('mqttbroker', ''),
-        ('mqttport', '1883'),
-        ('mqttuser', ''),
-        ('mqttpassword', ''),
-        ('mqttrecordings', 'false')
-    ]
-
-    for key, value in default_preferences:
-        cursor.execute('''INSERT OR IGNORE INTO user_preferences (user_id, preference_key, preference_value, last_updated)   
-                          VALUES (?, ?, ?, datetime('now'))''', (0, key, value))
-
-    connection.commit()
-    connection.close()
-
-
-def get_user_preference(user_id, preference_key):
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    cursor.execute('SELECT preference_value FROM user_preferences WHERE user_id = ? AND preference_key = ?',
-                   (user_id, preference_key))
-    result = cursor.fetchone()
-
-    connection.close()
-
-    # Return the preference value if found, otherwise return None
-    return result[0] if result else None
+    
+    #method to populate initial data
+    @classmethod
+    def create_table(cls, safe=True):
+        super().create_table(cls)
+        #check if already init
+        init = cls.get_or_none(cls.preference_key == 'init')
+        if init:
+            return
+        #create default preferences
+        password = 'birdcage'
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        #create default preferences
+        default_preferences = [
+            ('init', 'true'),
+            ('recordinglength', '15'),
+            ('confidence', '0.7'),
+            ('extractionlength', '6'),
+            ('latitude', '39.0473'),
+            ('longitude', '-95.6752'),
+            ('overlap', '0'),
+            ('sensitivity', '1'),
+            ('sf_thresh', '0.03'),
+            ('password', hashed_password),
+            ('locale', 'en'),
+            ('recordingretention', '0'),
+            ('mqttbroker', ''),
+            ('mqttport', '1883'),
+            ('mqttuser', ''),
+            ('mqttpassword', ''),
+            ('mqttrecordings', 'false')
+        ]
 
 
-def get_all_user_preferences(user_id):
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    cursor.execute('SELECT preference_key, preference_value FROM user_preferences WHERE user_id = ?',
-                   str(user_id))
-    result = cursor.fetchall()
-
-    connection.close()
-
-    # Convert the result to a dictionary
-    preferences = {row[0]: row[1] for row in result} if result else None
-
-    return preferences
+        for key, value in default_preferences:
+            cls.insert(user_id=0, preference_key=key, preference_value=value, last_updated=datetime.datetime.now())
 
 
 def check_password(password_input):
     # Retrieve the hashed password from the database
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-    cursor.execute("SELECT preference_value FROM user_preferences WHERE user_id = ? AND preference_key = ?",
-                   (0, 'password'))
-    stored_hashed_password = cursor.fetchone()[0]
-    connection.close()
+    hashed_password = UserPreferences.get(UserPreferences.preference_key == 'password').preference_value
 
     # Verify the input password against the stored hashed password
-    return bcrypt.checkpw(password_input.encode(), stored_hashed_password.encode())
+    return bcrypt.checkpw(password_input.encode(), hashed_password.encode())
