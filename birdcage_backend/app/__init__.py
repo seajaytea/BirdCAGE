@@ -18,7 +18,7 @@ from app.models.commands import Command
 from app.models.preferences import UserPreferences
 from app.models.recording_metadata import create_recording_metadata_table
 from app.models.detections import Detection
-from app.models.filters import create_filters_tables
+from app.models.filters import FilterThresholds, SpeciessOverides
 from app.models.notifications import NotificationService, NotificationAssignment
 from app.utils.db import db
 from app.utils.json_encoder import UpdatedJSONProvider
@@ -38,7 +38,8 @@ def create_app(init_celery=True):
     NotificationService.create_table()
     NotificationAssignment.create_table()
     create_recording_metadata_table()
-    create_filters_tables()
+    FilterThresholds.create_table()
+    SpeciessOverides.create_table()
 
     @app.before_request
     def before_request():
