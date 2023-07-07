@@ -13,8 +13,8 @@ from app.views.filters import filters_blueprint
 from app.views.notifications import notifications_blueprint
 from app.views.commands import commands_blueprint
 from app.views.app_health import app_heath_blueprint
-from app.models.streams import create_streams_table
-from app.models.preferences import create_preferences_table
+from app.models.streams import Stream
+from app.models.preferences import UserPreferences
 from app.models.recording_metadata import create_recording_metadata_table
 from app.models.detections import create_detections_table
 from app.models.filters import create_filters_tables
@@ -31,7 +31,7 @@ def create_app(init_celery=True):
     CORS(app, origins=cors_origins)
 
     Stream.create_table(safe=True)
-    create_preferences_table()
+    UserPreferences.create_table() # safe=True is hardcoded in method superclass call
     create_recording_metadata_table()
     create_detections_table()
     create_filters_tables()

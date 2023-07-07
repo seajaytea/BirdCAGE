@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import sqlite3
 from datetime import datetime
 from config import DATABASE_FILE
-from app.models.preferences import get_all_user_preferences
+from app.models.preferences import UserPreferences
 import requests
 from app.decorators import admin_required
 
@@ -15,7 +15,7 @@ def get_birds_of_the_week():
     #get the predicted birds of the week from BirdNET Analyzer and return to client
     url = 'http://birdcage_analyzer:8080/predictedspecies'
 
-    preferences = get_all_user_preferences(0)
+    preferences = UserPreferences.get_all_user_preferences(0)
     now = datetime.now()
     year, week_number, weekday = now.isocalendar()
 
