@@ -1,8 +1,5 @@
 from app import create_app
-from app.models.streams import create_streams_table
-from app.models.preferences import create_preferences_table
-from app.models.recording_metadata import create_recording_metadata_table
-from app.models.detections import create_detections_table
+
 from flask import Flask, redirect
 from flask_swagger_ui import get_swaggerui_blueprint
 from config import API_SERVER_PORT
