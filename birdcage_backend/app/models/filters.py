@@ -1,53 +1,33 @@
-import sqlite3
-from config import DATABASE_FILE
+from app.utils.db import BaseModel
+from peewee import IntegerField, FloatField, TextField, ForeignKeyField
 
+class FilterThresholds(BaseModel):
+    user_id = IntegerField(primary_key=True)
+    ignore_threshold = FloatField()
+    log_threshold = FloatField()
+    recordalert_threshold = FloatField()
 
-def create_filters_tables():
-    create_filter_thresholds_table()
-    create_species_overrides()
+    class Meta:
+        table_name = 'filter_thresholds'
 
+    @classmethod
+    def create_table(cls, safe=True):
+        super().create_table(cls)
 
-def create_filter_thresholds_table():
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
+        init = cls.select().where(cls.user_id == 0).first()
+        if init:
+            return
+        cls.create(user_id=0, ignore_threshold=1, log_threshold=1, recordalert_threshold=0).save()
 
-    cursor.execute('''  
-    CREATE TABLE IF NOT EXISTS filter_thresholds (  
-        user_id INTEGER PRIMARY KEY,  
-        ignore_threshold REAL NOT NULL,  
-        log_threshold REAL NOT NULL,  
-        recordalert_threshold REAL NOT NULL  
-    );  
-    ''')
+class SpeciessOverides(BaseModel):
+    id = IntegerField(primary_key=True)
+    user_id = ForeignKeyField(FilterThresholds, backref='species_overrides')
+    species_name = TextField()
+    override_type = TextField()
 
-    # Check if the default values have been set
-    cursor.execute("SELECT COUNT(*) FROM filter_thresholds WHERE user_id = 0;")
-    count = cursor.fetchone()[0]
+    class Meta:
+        table_name = 'species_overrides'
 
-    # If the default values haven't been set, insert them
-    if count == 0:
-        cursor.execute(
-            "INSERT INTO filter_thresholds (user_id, ignore_threshold, log_threshold, recordalert_threshold) VALUES (0, 1, 1, 0);")
-
-    connection.commit()
-    connection.close()
-
-
-def create_species_overrides():
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    # Create the species_overrides table
-    cursor.execute("""  
-    CREATE TABLE IF NOT EXISTS species_overrides (  
-        id INTEGER PRIMARY KEY,  
-        user_id INTEGER NOT NULL,  
-        species_name TEXT NOT NULL,  
-        override_type TEXT NOT NULL,  
-        FOREIGN KEY (user_id) REFERENCES filter_thresholds(user_id),  
-        UNIQUE(user_id, species_name)  
-    );  
-    """)
-
-    connection.commit()
-    connection.close()
+        indexs = (
+            (('user_id', 'species_name'), True),
+        )
