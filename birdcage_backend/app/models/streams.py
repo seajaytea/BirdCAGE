@@ -1,17 +1,13 @@
-import sqlite3
-from config import DATABASE_FILE
+from app.utils.db import BaseModel
+from peewee import IntegerField, TextField
 
 
-def create_streams_table():
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
+class Stream(BaseModel):
+    id = IntegerField(primary_key=True)
+    name = TextField(unique=True)
+    address = TextField()
+    protocol = TextField()
+    transport = TextField()
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS streams (  
-                      id INTEGER PRIMARY KEY,  
-                      name TEXT NOT NULL UNIQUE,  
-                      address TEXT NOT NULL,  
-                      protocol TEXT NOT NULL,  
-                      transport TEXT)''')
-
-    connection.commit()
-    connection.close()
+    class Meta:
+        table_name = 'streams'

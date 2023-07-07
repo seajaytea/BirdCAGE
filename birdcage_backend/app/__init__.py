@@ -30,7 +30,7 @@ def create_app(init_celery=True):
     cors_origins = CORS_ORIGINS.split(',')
     CORS(app, origins=cors_origins)
 
-    create_streams_table()
+    Stream.create_table(safe=True)
     create_preferences_table()
     create_recording_metadata_table()
     create_detections_table()
