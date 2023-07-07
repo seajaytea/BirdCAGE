@@ -64,7 +64,7 @@ class UserPreferences(BaseModel):
 
 
         for key, value in default_preferences:
-            cls.insert(user_id=0, preference_key=key, preference_value=value, last_updated=datetime.datetime.now())
+            cls.create(user_id=0, preference_key=key, preference_value=value, last_updated=datetime.datetime.now()).save()
 
 
 def check_password(password_input):
