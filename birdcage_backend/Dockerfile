@@ -1,17 +1,16 @@
 # Use the official Python 3.10 image as the base image
 FROM python:3.10
+WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y ffmpeg pulseaudio
 
-COPY requirements.txt /tmp
-
+COPY requirements.txt requirements.txt
 # Install Python packages from requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy files into the container
-COPY run.py start_app.sh config.py celery_worker.py /
-COPY app /app
+COPY . .
 
 # Set environment variables
 ENV DATABASE_FILE=/db/birdcage.db \

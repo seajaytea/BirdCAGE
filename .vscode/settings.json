@@ -1,0 +1,6 @@
+{
+  "python.analysis.extraPaths": [
+    "birdcage_backend"
+  ],
+  "python.defaultInterpreterPath": "birdcage_backend/venv/bin/python"
+}
