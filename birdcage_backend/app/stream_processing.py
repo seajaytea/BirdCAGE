@@ -11,7 +11,7 @@ import uuid
 from app.models.preferences import get_all_user_preferences
 from app.models.detections import add_detection
 from app.models.commands import check_command_value, reset_command
-from config import ANALYZE_SERVER, ANALYZE_PORT, TEMP_DIR_NAME, DETECTION_DIR_NAME, REDIS_SERVER, REDIS_PORT
+from config import TEMP_DIR_NAME, DETECTION_DIR_NAME, REDIS_SERVER, REDIS_PORT
 import json
 import requests
 from app.models.recording_metadata import set_metadata, get_metadata_by_filename, delete_metadata_by_filename
@@ -191,7 +191,7 @@ def record_stream(self, stream, preferences):
 
 
 def sendRequest(fpath, mdata):
-    url = 'http://{}:{}/analyze'.format(ANALYZE_SERVER, ANALYZE_PORT)
+    url = 'http://birdcage_analyzer:7667/analyze'
 
     print('Requesting analysis for {}'.format(fpath), flush=True)
 

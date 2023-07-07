@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 import sqlite3
 from datetime import datetime
-from config import DATABASE_FILE, ANALYZE_SERVER, ANALYZE_PORT
+from config import DATABASE_FILE
 from app.models.preferences import get_all_user_preferences
 import requests
 from app.decorators import admin_required
@@ -13,7 +13,7 @@ filters_blueprint = Blueprint('filters', __name__)
 def get_birds_of_the_week():
 
     #get the predicted birds of the week from BirdNET Analyzer and return to client
-    url = 'http://{}:{}/predictedspecies'.format(ANALYZE_SERVER, ANALYZE_PORT)
+    url = 'http://birdcage_analyzer:7667/predictedspecies'
 
     preferences = get_all_user_preferences(0)
     now = datetime.now()
