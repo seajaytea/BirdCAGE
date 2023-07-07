@@ -19,7 +19,7 @@ from app.models.preferences import UserPreferences
 from app.models.recording_metadata import create_recording_metadata_table
 from app.models.detections import Detection
 from app.models.filters import create_filters_tables
-from app.models.notifications import create_notification_services_table, create_notification_assignments_table
+from app.models.notifications import NotificationService, NotificationAssignment
 from app.utils.db import db
 from app.utils.json_encoder import UpdatedJSONProvider
 from config import CORS_ORIGINS, JWT_SECRET_KEY
@@ -35,10 +35,10 @@ def create_app(init_celery=True):
     Command.create_table()
     Stream.create_table()
     Detection.create_table()
+    NotificationService.create_table()
+    NotificationAssignment.create_table()
     create_recording_metadata_table()
     create_filters_tables()
-    create_notification_services_table()
-    create_notification_assignments_table()
 
     @app.before_request
     def before_request():
