@@ -17,10 +17,11 @@ from app.models.streams import Stream
 from app.models.commands import Command
 from app.models.preferences import UserPreferences
 from app.models.recording_metadata import create_recording_metadata_table
-from app.models.detections import create_detections_table
+from app.models.detections import Detection
 from app.models.filters import create_filters_tables
 from app.models.notifications import create_notification_services_table, create_notification_assignments_table
 from app.utils.db import db
+from app.utils.json_encoder import UpdatedJSONProvider
 from config import CORS_ORIGINS, JWT_SECRET_KEY
 
 
@@ -33,8 +34,8 @@ def create_app(init_celery=True):
     UserPreferences.create_table()
     Command.create_table()
     Stream.create_table()
+    Detection.create_table()
     create_recording_metadata_table()
-    create_detections_table()
     create_filters_tables()
     create_notification_services_table()
     create_notification_assignments_table()
@@ -48,6 +49,8 @@ def create_app(init_celery=True):
     def teardown_request(exception):
         if not db.is_closed():
             db.close()
+
+    app.json = UpdatedJSONProvider(app) #support for datetime objects in json responses
 
     if init_celery:
         # Initialize Celery
