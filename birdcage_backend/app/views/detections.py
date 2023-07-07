@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, abort
 import sqlite3
 from config import DATABASE_FILE
+from app.models.detections import Detection
 
 detections_blueprint = Blueprint('detections', __name__)
 
@@ -8,17 +9,12 @@ detections_blueprint = Blueprint('detections', __name__)
 # Get the date of the earliest detection
 @detections_blueprint.route('/api/detections/earliest-date', methods=['GET'])
 def get_earliest_detection_date():
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
 
-    cursor.execute('SELECT MIN(timestamp) FROM detections')
-    earliest_date = cursor.fetchone()
-
-    connection.close()
-
+    earliest_date = Detection.select(Detection.timestamp).order_by(Detection.timestamp.asc()).first()
+    
     # Check if there is any data in the table
-    if earliest_date[0] is not None:
-        return jsonify({"earliest_date": earliest_date[0]})
+    if earliest_date.timestamp is not None:
+        return jsonify({"earliest_date": earliest_date.timestamp})
     else:
         return jsonify({"error": "No data available"})
 
@@ -26,15 +22,9 @@ def get_earliest_detection_date():
 # Get X most recent detections
 @detections_blueprint.route('/api/detections/recent/<int:limit>', methods=['GET'])
 def get_recent_detections(limit):
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    cursor.execute('SELECT * FROM detections ORDER BY timestamp DESC LIMIT ?', (limit,))
-    detections = cursor.fetchall()
-
-    connection.close()
-
-    return jsonify(detections)
+    detections = Detection.select().order_by(Detection.timestamp.desc()).limit(limit).tuples()
+    list_of_detections = [list(detection) for detection in detections]
+    return jsonify(list_of_detections)
 
 
 # Get all of the detections for a given date

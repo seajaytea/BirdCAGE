@@ -9,7 +9,7 @@ from pathlib import Path
 import ffmpeg
 import uuid
 from app.models.preferences import UserPreferences
-from app.models.detections import add_detection
+from app.models.detections import Detection
 from app.models.commands import Command
 from config import TEMP_DIR_NAME, DETECTION_DIR_NAME, REDIS_SERVER, REDIS_PORT
 import json
@@ -282,14 +282,28 @@ def check_results(results, filepath, recording_metadata, preferences, mqttclient
                 # from this interval
                 if detectionaction == 'log':
                     print("Adding detection", flush=True)
-                    add_detection(timestamp, stream_id, streamname, scientific_name, common_name, confidence_score,
-                                  '')
+                    Detection.create(
+                        timestamp=timestamp,
+                        stream_id=stream_id,
+                        streamname=streamname,
+                        scientific_name=scientific_name,
+                        common_name=common_name,
+                        confidence_score=confidence_score,
+                        filename=''
+                    ).save()
                     print("Detection added", flush=True)
 
                 else:  # if detection action is record or alert
                     print("Adding detection", flush=True)
-                    add_detection(timestamp, stream_id, streamname, scientific_name, common_name, confidence_score,
-                                  mp3_filename)
+                    Detection.create(
+                        timestamp=timestamp,
+                        stream_id=stream_id,
+                        streamname=streamname,
+                        scientific_name=scientific_name,
+                        common_name=common_name,
+                        confidence_score=confidence_score,
+                        filename=mp3_filename
+                    ).save()
                     print("Detection added", flush=True)
 
                 notify(detectionaction, timestamp, stream_id, streamname, scientific_name, common_name,

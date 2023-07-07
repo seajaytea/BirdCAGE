@@ -1,23 +1,26 @@
-import sqlite3
-from config import DATABASE_FILE
+from app.utils.db import BaseModel
+from peewee import IntegerField, TextField, DateTimeField, FloatField
+import datetime
 
+class Detection(BaseModel):
+    id = IntegerField(primary_key=True)
+    timestamp = DateTimeField(default=datetime.datetime.now)
+    stream_id = IntegerField()
+    streamname = TextField()
+    scientific_name = TextField()
+    common_name = TextField()
+    confidence = FloatField()
+    filename = TextField()
 
-def create_detections_table():
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
+    class Meta:
+        table_name = 'detections'
 
-    cursor.execute('''CREATE TABLE IF NOT EXISTS detections (  
-                      id INTEGER PRIMARY KEY,  
-                      timestamp TIMESTAMP NOT NULL,  
-                      stream_id INTEGER NOT NULL,  
-                      streamname TEXT NOT NULL,  
-                      scientific_name TEXT NOT NULL,  
-                      common_name TEXT NOT NULL,  
-                      confidence FLOAT NOT NULL,  
-                      filename TEXT NOT NULL  
-                      )''')
+    @classmethod
+    def create_table(cls, safe=True):
+        super().create_table(cls)
 
-    cursor.execute('''CREATE VIEW IF NOT EXISTS daily_detections AS  
+        cls._meta.database.execute_sql('''
+        CREATE VIEW IF NOT EXISTS daily_detections AS  
                       SELECT  
                           date(timestamp) AS date,  
                           common_name,  
@@ -26,16 +29,3 @@ def create_detections_table():
                           detections  
                       GROUP BY  
                           date(timestamp), common_name;''')
-
-    connection.commit()
-    connection.close()
-
-
-def add_detection(timestamp, stream_id, streamname, scientific_name, common_name, confidence, filename):
-    with sqlite3.connect(DATABASE_FILE, timeout=20) as connection:
-        cursor = connection.cursor()
-        cursor.execute('''    
-            INSERT INTO detections (timestamp, stream_id, streamname, scientific_name, common_name, confidence, filename)    
-            VALUES (?, ?, ?, ?, ?, ?, ?)    
-        ''', (timestamp, stream_id, streamname, scientific_name, common_name, confidence, filename))
-    connection.close()
