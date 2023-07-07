@@ -30,28 +30,14 @@ def get_recent_detections(limit):
 # Get all of the detections for a given date
 @detections_blueprint.route('/api/detections/date/<string:date>', methods=['GET'])
 def get_detections_by_date(date):
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    cursor.execute('SELECT * FROM detections WHERE DATE(timestamp) = ? ORDER BY timestamp ASC', (date,))
-    detections = cursor.fetchall()
-
-    connection.close()
-
-    return jsonify(detections)
+    detections = Detection.select().where(Detection.timestamp.contains(date)).tuples()
+    return jsonify(list(detections))
 
 
 # Get the total number of detections for a given date
 @detections_blueprint.route('/api/detections/date/<string:date>/count', methods=['GET'])
 def get_detection_count_by_date(date):
-    connection = sqlite3.connect(DATABASE_FILE)
-    cursor = connection.cursor()
-
-    cursor.execute('SELECT COUNT(*) FROM detections WHERE DATE(timestamp) = ?', (date,))
-    count = cursor.fetchone()[0]
-
-    connection.close()
-
+    count = len(Detection.select().where(Detection.timestamp.contains(date)))
     return jsonify({"count": count})
 
 
