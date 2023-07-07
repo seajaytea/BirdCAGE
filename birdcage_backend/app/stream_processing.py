@@ -10,7 +10,7 @@ import ffmpeg
 import uuid
 from app.models.preferences import UserPreferences
 from app.models.detections import add_detection
-from app.models.commands import check_command_value, reset_command
+from app.models.commands import Command
 from config import TEMP_DIR_NAME, DETECTION_DIR_NAME, REDIS_SERVER, REDIS_PORT
 import json
 import requests
@@ -507,7 +507,7 @@ def monitor_tasks(self, task_ids):
             time.sleep(2)
 
             # Check to see if we've gotten a restart signal
-            if check_command_value('restart'):
+            if Command.get(name='restart').value:
                 # Ask all the tasks to stop
                 for task_id in task_ids:
                     redis_client.hset('task_state', f'{task_id}_stop', 'True')
@@ -527,7 +527,10 @@ def monitor_tasks(self, task_ids):
                 task_ids = new_task_ids
 
                 # reset the command from the UI
-                reset_command('restart', False)
+                c = Command.get(name='restart')
+                c.value = False
+                c.save()
+
 
             consecutive_successes += 1
             consecutive_fails = 0

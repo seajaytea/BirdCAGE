@@ -14,12 +14,12 @@ from app.views.notifications import notifications_blueprint
 from app.views.commands import commands_blueprint
 from app.views.app_health import app_heath_blueprint
 from app.models.streams import Stream
+from app.models.commands import Command
 from app.models.preferences import UserPreferences
 from app.models.recording_metadata import create_recording_metadata_table
 from app.models.detections import create_detections_table
 from app.models.filters import create_filters_tables
 from app.models.notifications import create_notification_services_table, create_notification_assignments_table
-from app.models.commands import create_commands_table
 from app.utils.db import db
 from config import CORS_ORIGINS, JWT_SECRET_KEY
 
@@ -30,14 +30,14 @@ def create_app(init_celery=True):
     cors_origins = CORS_ORIGINS.split(',')
     CORS(app, origins=cors_origins)
 
-    Stream.create_table(safe=True)
-    UserPreferences.create_table() # safe=True is hardcoded in method superclass call
+    UserPreferences.create_table()
+    Command.create_table()
+    Stream.create_table()
     create_recording_metadata_table()
     create_detections_table()
     create_filters_tables()
     create_notification_services_table()
     create_notification_assignments_table()
-    create_commands_table()
 
     @app.before_request
     def before_request():
