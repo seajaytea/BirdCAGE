@@ -14,7 +14,7 @@ from app.models.commands import Command
 from config import TEMP_DIR_NAME, DETECTION_DIR_NAME, REDIS_SERVER, REDIS_PORT
 import json
 import requests
-from app.models.recording_metadata import set_metadata, get_metadata_by_filename, delete_metadata_by_filename
+from app.models.recording_metadata import RecordingMetadata
 import glob
 from pydub import AudioSegment
 from .filter_functions import update_birdsoftheweek_table, create_birdsoftheweek_table, getaction
@@ -160,8 +160,8 @@ def record_stream(self, stream, preferences):
             if result['status'] == 'success':
                 # The recording was successful
                 print(f"Recording successful. File saved to: {result['filepath']} Now setting metadata", flush=True)
-                set_metadata(os.path.basename(tmp_filename),
-                             stream_id, name, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                RecordingMetadata.create(filename=os.path.basename(tmp_filename), stream_id=stream_id,
+                                         name=name)
                 print(f"Metadata set for: {result['filepath']}", flush=True)
 
             else:
@@ -375,7 +375,7 @@ def analyze_recordings(self):
             # Iterate through the sorted files
             for file_path in sorted_wav_files:
                 filename = os.path.basename(file_path)
-                recording_metadata = get_metadata_by_filename(filename)
+                recording_metadata = RecordingMetadata.get(RecordingMetadata.filename == filename)
 
                 if recording_metadata is None:
                     # Check if the file is older than 5 minutes
@@ -423,7 +423,7 @@ def analyze_recordings(self):
                         if os.path.exists(file_path):
                             os.remove(file_path)
                         print("Deleting metadata", flush=True)
-                        delete_metadata_by_filename(filename)
+                        RecordingMetadata.delete().where(RecordingMetadata.filename == filename).execute()
                         print("Metadata deleted", flush=True)
 
                     else:
