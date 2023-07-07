@@ -35,36 +35,34 @@ class UserPreferences(BaseModel):
     def create_table(cls, safe=True):
         super().create_table(cls)
         #check if already init
-        init = cls.get_or_none(cls.preference_key == 'init')
-        if init:
-            return
-        #create default preferences
-        password = 'birdcage'
-        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        #create default preferences
-        default_preferences = [
-            ('init', 'true'),
-            ('recordinglength', '15'),
-            ('confidence', '0.7'),
-            ('extractionlength', '6'),
-            ('latitude', '39.0473'),
-            ('longitude', '-95.6752'),
-            ('overlap', '0'),
-            ('sensitivity', '1'),
-            ('sf_thresh', '0.03'),
-            ('password', hashed_password),
-            ('locale', 'en'),
-            ('recordingretention', '0'),
-            ('mqttbroker', ''),
-            ('mqttport', '1883'),
-            ('mqttuser', ''),
-            ('mqttpassword', ''),
-            ('mqttrecordings', 'false')
-        ]
+        init, created = cls.get_or_create(preference_key='init', defaults={'preference_value': 'true'})
+        if created:
+            #create default preferences
+            password = 'birdcage'
+            hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+            #create default preferences
+            default_preferences = [
+                ('recordinglength', '15'),
+                ('confidence', '0.7'),
+                ('extractionlength', '6'),
+                ('latitude', '39.0473'),
+                ('longitude', '-95.6752'),
+                ('overlap', '0'),
+                ('sensitivity', '1'),
+                ('sf_thresh', '0.03'),
+                ('password', hashed_password),
+                ('locale', 'en'),
+                ('recordingretention', '0'),
+                ('mqttbroker', ''),
+                ('mqttport', '1883'),
+                ('mqttuser', ''),
+                ('mqttpassword', ''),
+                ('mqttrecordings', 'false')
+            ]
 
 
-        for key, value in default_preferences:
-            cls.create(user_id=0, preference_key=key, preference_value=value, last_updated=datetime.datetime.now()).save()
+            for key, value in default_preferences:
+                cls.create(user_id=0, preference_key=key, preference_value=value, last_updated=datetime.datetime.now()).save()
 
 
 def check_password(password_input):
