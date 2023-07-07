@@ -13,7 +13,7 @@ filters_blueprint = Blueprint('filters', __name__)
 def get_birds_of_the_week():
 
     #get the predicted birds of the week from BirdNET Analyzer and return to client
-    url = 'http://birdcage_analyzer:7667/predictedspecies'
+    url = 'http://birdcage_analyzer:8080/predictedspecies'
 
     preferences = get_all_user_preferences(0)
     now = datetime.now()

@@ -53,11 +53,14 @@ services:
       - birdcage_net
 
   birdcage_frontend:
-    image: "mmcc73/birdcage_frontend:latest"
+    # image: "mmcc73/birdcage_frontend:latest"
+    build:
+      context: birdcage_frontend
+      dockerfile: Dockerfile
     ports:
       - "7008:7008"
     environment:
-      API_SERVER_URL: http://127.0.0.1:7007
+      API_SERVER_URL: http://10.0.100.226:7007
       WEBUI_PORT: 7008
       #TITLE_TEXT: Your Title Here
       #TITLE_LINK: http://yourlinkhere

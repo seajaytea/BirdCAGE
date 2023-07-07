@@ -191,7 +191,7 @@ def record_stream(self, stream, preferences):
 
 
 def sendRequest(fpath, mdata):
-    url = 'http://birdcage_analyzer:7667/analyze'
+    url = 'http://birdcage_analyzer:8080/analyze'
 
     print('Requesting analysis for {}'.format(fpath), flush=True)
 
