@@ -281,30 +281,22 @@ def check_results(results, filepath, recording_metadata, preferences, mqttclient
                 # don't store an mp3 file name if detectionaction is 'log' even if there happens to already be a recording
                 # from this interval
                 if detectionaction == 'log':
-                    print("Adding detection", flush=True)
-                    Detection.create(
-                        timestamp=timestamp,
-                        stream_id=stream_id,
-                        streamname=streamname,
-                        scientific_name=scientific_name,
-                        common_name=common_name,
-                        confidence_score=confidence_score,
-                        filename=''
-                    ).save()
-                    print("Detection added", flush=True)
+                    filename = ''
+                else:
+                    filename = mp3_filename
+                
+                print("Adding detection", flush=True)
+                Detection.create(
+                    timestamp=timestamp,
+                    stream_id=stream_id,
+                    streamname=streamname,
+                    scientific_name=scientific_name,
+                    common_name=common_name,
+                    confidence=confidence_score,
+                    filename=filename
+                ).save()
+                print("Detection added", flush=True)
 
-                else:  # if detection action is record or alert
-                    print("Adding detection", flush=True)
-                    Detection.create(
-                        timestamp=timestamp,
-                        stream_id=stream_id,
-                        streamname=streamname,
-                        scientific_name=scientific_name,
-                        common_name=common_name,
-                        confidence_score=confidence_score,
-                        filename=mp3_filename
-                    ).save()
-                    print("Detection added", flush=True)
 
                 notify(detectionaction, timestamp, stream_id, streamname, scientific_name, common_name,
                        confidence_score, mp3path)
