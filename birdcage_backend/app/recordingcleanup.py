@@ -1,8 +1,10 @@
 from config import DETECTION_DIR_NAME
-from config import DATABASE_FILE
-import sqlite3
+from app.models.detections import Detection
+from peewee import fn
 import os
 import datetime
+
+
 
 
 def recordingcleanup(numdays):
@@ -20,21 +22,29 @@ def recordingcleanup(numdays):
     THUMB_DIR = os.path.join(DETECTION_DIR, 'thumb')
     FULL_DIR = os.path.join(DETECTION_DIR, 'full')
 
-    # Connect to the database
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
 
-    # Retrieve records older than numdays
-    cursor.execute("SELECT id, filename FROM detections WHERE timestamp < ? AND LENGTH(filename) > 0 AND (id, filename) NOT IN (SELECT id, filename FROM (SELECT id, filename, max(confidence) FROM detections WHERE LENGTH(filename)> 0 GROUP BY scientific_name))", (timestamp_limit,))
-    records = cursor.fetchall()
+    #get max confidence detections per scientfic name
+    highest_confidence_per_species = (Detection
+                .select(Detection.id, Detection.filename, fn.MAX(Detection.confidence).alias('max_confidence'))
+                .where(fn.LENGTH(Detection.filename) > 0)
+                .group_by(Detection.scientific_name)
+    )
+    ids_to_keep = [record.id for record in highest_confidence_per_species]
+    to_delete = (Detection
+                .select(Detection.id, Detection.filename)
+                .where((Detection.timestamp < timestamp_limit) & 
+                       (Detection.id.not_in(ids_to_keep)))
+    )
+
+
+
 
     # Iterate through records
-    for record in records:
-        record_id, filename = record
+    for record in to_delete:
 
         # Delete the file
         try:
-            file_path = os.path.join(DETECTION_DIR, filename)
+            file_path = os.path.join(DETECTION_DIR, record.filename)
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleted file: {file_path}")
@@ -42,14 +52,14 @@ def recordingcleanup(numdays):
                 print(f"File not found: {file_path}")
 
             # delete spectrograms if they exist
-            file_path = os.path.join(THUMB_DIR, filename + ".png")
+            file_path = os.path.join(THUMB_DIR, record.filename + ".png")
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleted thumbnail: {file_path}")
             else:
                 print(f"Thumbnail not found: {file_path}")
 
-            file_path = os.path.join(FULL_DIR, filename + ".png")
+            file_path = os.path.join(FULL_DIR, record.filename + ".png")
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleted spectrogram: {file_path}")
@@ -57,15 +67,11 @@ def recordingcleanup(numdays):
                 print(f"Spectrogram not found: {file_path}")
 
                 # Update the record in the database
-            cursor.execute("UPDATE detections SET filename = '' WHERE id = ?", (record_id,))
-            print(f"Updated record id: {record_id}")
+            Detection.update(filename='').where(Detection.id == record.id).execute()
+            print(f"Updated record id: {record.id}")
 
         except Exception as e:
-            print(f"Error processing record id {record_id}: {e}")
-
-            # Commit the changes and close the connection
-    conn.commit()
-    conn.close()
+            print(f"Error processing record id {record.id}: {e}")
 
 if __name__ == '__main__':
     recordingcleanup(3)
