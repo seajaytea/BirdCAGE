@@ -1,5 +1,4 @@
 from flask import Blueprint, request, jsonify
-import sqlite3
 from config import DATABASE_FILE
 from app.models.preferences import UserPreferences, check_password
 from functools import wraps

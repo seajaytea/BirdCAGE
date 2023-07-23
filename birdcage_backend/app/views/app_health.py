@@ -2,8 +2,8 @@ from datetime import datetime
 from flask import Blueprint, jsonify
 from redis import Redis
 from config import REDIS_PORT, REDIS_SERVER, DATABASE_FILE
+from app.utils.db import db
 import os
-import sqlite3
 
 
 redis_client = Redis(host=REDIS_SERVER, port=REDIS_PORT, db=1)
@@ -55,36 +55,33 @@ def task_health():
     return jsonify(tasks_data)
 
 
-def get_table_stats(conn):
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+def get_table_stats(db):
+    cursor = db.execute_sql("SELECT name FROM sqlite_master WHERE type='table';")
     tables = cursor.fetchall()
 
     table_stats = []
     for table in tables:
         table_name = table[0]
-        cursor.execute(f"SELECT COUNT(*) FROM {table_name};")
+        cursor = db.execute_sql(f"SELECT COUNT(*) FROM {table_name};")
         row_count = cursor.fetchone()[0]
         table_stats.append({"table_name": table_name, "row_count": row_count})
 
     return table_stats
 
 
-def perform_integrity_check(conn):
-    cursor = conn.cursor()
-    cursor.execute("PRAGMA integrity_check;")
+def perform_integrity_check(db):
+    cursor = db.execute_sql("PRAGMA integrity_check;")
     result = cursor.fetchone()[0]
     return result == "ok"
 
 
 @app_heath_blueprint.route('/api/app_health/db_health')
 def db_health():
-    conn = sqlite3.connect(DATABASE_FILE)
 
     db_stats = {
         "file_size": os.path.getsize(DATABASE_FILE),
-        "table_stats": get_table_stats(conn),
-        "integrity_check": perform_integrity_check(conn)
+        "table_stats": get_table_stats(db),
+        "integrity_check": perform_integrity_check(db)
     }
 
     conn.close()
