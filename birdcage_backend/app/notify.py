@@ -1,29 +1,22 @@
-from config import DATABASE_FILE
-import sqlite3
+from  app.models.notifications import NotificationAssignment, NotificationService
 import apprise
 
 
 def geturls(detectionaction):
     # Connect to the database
-    conn = sqlite3.connect(DATABASE_FILE)
-    cursor = conn.cursor()
+    
 
     # Execute the SQL query to get the URLs
-    cursor.execute('''  
-            SELECT ns.service_url  
-            FROM notification_assignments na  
-            JOIN notification_services ns ON na.notification_service = ns.service_name  
-            WHERE na.detectionaction = ?  
-        ''', (detectionaction,))
-
-    # Fetch all matching rows
-    results = cursor.fetchall()
-
-    # Close the connection
-    conn.close()
+    urls = (NotificationService
+                .select(
+                    NotificationService.service_url
+                )
+                .join(NotificationAssignment)
+                .where(NotificationAssignment.detectionaction == detectionaction)
+                .dicts())
 
     # Extract the URLs from the results
-    urls = [row[0] for row in results]
+    urls = [url.service_url for url in urls]
 
     return urls
 
