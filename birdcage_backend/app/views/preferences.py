@@ -125,6 +125,9 @@ def set_preference():
         preference_value = bcrypt.hashpw(preference_value.encode(), bcrypt.gensalt()).decode()
 
     pref, created = UserPreferences.get_or_create(user_id=user_id, preference_key=preference_key, defaults={'preference_value': preference_value})
+    if not created:
+        pref.preference_value = preference_value
+        pref.save()
 
     
 
