@@ -367,7 +367,7 @@ def analyze_recordings(self):
             # Iterate through the sorted files
             for file_path in sorted_wav_files:
                 filename = os.path.basename(file_path)
-                recording_metadata = RecordingMetadata.get(RecordingMetadata.filename == filename)
+                recording_metadata = RecordingMetadata.get_or_none(RecordingMetadata.filename == filename)
 
                 if recording_metadata is None:
                     # Check if the file is older than 5 minutes
