@@ -13,7 +13,7 @@ def get_earliest_detection_date():
     earliest_date = Detection.select(Detection.timestamp).order_by(Detection.timestamp.asc()).first()
     
     # Check if there is any data in the table
-    if earliest_date.timestamp is not None:
+    if earliest_date and earliest_date.timestamp is not None:
         return jsonify({"earliest_date": earliest_date.timestamp})
     else:
         return jsonify({"error": "No data available"})

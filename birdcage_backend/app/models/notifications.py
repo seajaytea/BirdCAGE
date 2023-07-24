@@ -1,5 +1,5 @@
 from app.utils.db import BaseModel
-from peewee import IntegerField, TextField
+from peewee import ForeignKeyField, TextField
 
 class NotificationService(BaseModel):
     service_name = TextField(unique=True)
@@ -21,7 +21,7 @@ class NotificationService(BaseModel):
 
 class NotificationAssignment(BaseModel):
     detectionaction = TextField()
-    notification_service = TextField()
+    notification_service = ForeignKeyField(NotificationService, backref='notification_assignments')
 
     class Meta:
         table_name = 'notification_assignments'

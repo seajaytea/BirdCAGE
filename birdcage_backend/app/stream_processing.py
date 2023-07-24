@@ -161,7 +161,7 @@ def record_stream(self, stream, preferences):
                 # The recording was successful
                 print(f"Recording successful. File saved to: {result['filepath']} Now setting metadata", flush=True)
                 RecordingMetadata.create(filename=os.path.basename(tmp_filename), stream_id=stream_id,
-                                         name=name)
+                                         streamname=name)
                 print(f"Metadata set for: {result['filepath']}", flush=True)
 
             else:
@@ -274,9 +274,9 @@ def check_results(results, filepath, recording_metadata, preferences, mqttclient
                     mp3_saved = True
 
                 # Call add_detection with the mp3_filename
-                timestamp = recording_metadata['timestamp']
-                stream_id = recording_metadata['stream_id']
-                streamname = recording_metadata['streamname']
+                timestamp = recording_metadata.timestamp
+                stream_id = recording_metadata.stream_id
+                streamname = recording_metadata.streamname
 
                 # don't store an mp3 file name if detectionaction is 'log' even if there happens to already be a recording
                 # from this interval
@@ -384,10 +384,10 @@ def analyze_recordings(self):
                 else:
 
                     # analyze that recording
-                    stream_id = recording_metadata['stream_id']
-                    streamname = recording_metadata['streamname']
-                    timestamp = recording_metadata['timestamp']
-                    filename = recording_metadata['filename']
+                    stream_id = recording_metadata.stream_id
+                    streamname = recording_metadata.streamname
+                    timestamp = recording_metadata.timestamp
+                    filename = recording_metadata.filename
 
                     # Get the current time
                     now = datetime.now()

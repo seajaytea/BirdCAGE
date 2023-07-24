@@ -32,7 +32,7 @@ class UserPreferences(BaseModel):
     def create_table(cls, safe=True):
         super().create_table(cls)
         #check if already init
-        init, created = cls.get_or_create(preference_key='init', defaults={'preference_value': 'true'})
+        init, created = cls.get_or_create(preference_key='init', defaults={'preference_value': 'true', 'user_id': 0})
         if created:
             #create default preferences
             password = 'birdcage'
