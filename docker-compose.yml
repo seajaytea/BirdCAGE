@@ -63,7 +63,7 @@ services:
     ports:
       - "7008:7008"
     environment:
-      API_SERVER_URL: http://10.0.100.226:7007
+      API_SERVER_URL: http://192.168.0.106:7007
       WEBUI_PORT: 7008
       #SCRIPT_NAME: /birdcage # Uncomment this if you want to reverse proxy to BirdCAGE at a subfolder like /birdcage/
       #TITLE_TEXT: Your Title Here
